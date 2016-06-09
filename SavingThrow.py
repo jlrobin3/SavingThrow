@@ -74,6 +74,7 @@ import os
 import re
 import shutil
 import subprocess
+import stat
 import sys
 import syslog
 import time
@@ -290,6 +291,8 @@ class FileController(object):
         self.unload_and_disable_launchd_jobs([afile[0] for afile in files])
         for item, name in files:
             try:
+                flags = os.stat(item).st_flags & ~stat.UF_IMMUTABLE & ~stat.SF_IMMUTABLE
+            	  os.chflags(item, flags)
                 if os.path.isdir(item):
                     shutil.rmtree(item)
                 elif os.path.isfile(item):
@@ -327,6 +330,8 @@ class FileController(object):
 
             for item, name in files:
                 try:
+                    flags = os.stat(item).st_flags & ~stat.UF_IMMUTABLE & ~stat.SF_IMMUTABLE
+            	      os.chflags(item, flags)
                     shutil.move(item, backup_dir)
                     self.logger.log("Quarantined file: %s:%s"
                                     % (name, item))
